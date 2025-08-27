@@ -156,10 +156,27 @@ jobs:
           path: sgl-kernel/dist/*
 
   release-cu128:
+    if: github.repository == 'reflectionai/sglang'
     needs: build-cu128
     runs-on: ubuntu-latest
+    environment: "prod"
     steps:
-      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_ARTIFACT_REGISTRY_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -168,41 +185,11 @@ jobs:
           merge-multiple: true
           pattern: wheel-*
 
-      - name: Set tag name
-        id: set_tag_name
+      - name: Upload to internal PyPI (Artifact Registry)
         run: |
-          if [ -z "${{ inputs.tag_name }}" ]; then
-            TAG_NAME="v$(cat sgl-kernel/python/sgl_kernel/version.py | cut -d'"' -f2)"
-            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          else
-            echo "tag_name=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.set_tag_name.outputs.tag_name }}
-          repository: sgl-project/whl
-          token: ${{ secrets.WHL_TOKEN }}
-          files: |
-            sgl-kernel/dist/*
-
-      - name: Clone wheel index
-        run: git clone https://oauth2:${WHL_TOKEN}@github.com/sgl-project/whl.git sgl-whl
-        env:
-          WHL_TOKEN: ${{ secrets.WHL_TOKEN }}
-
-      - name: Update wheel index
-        run: python3 scripts/update_kernel_whl_index.py --cuda 128
-
-      - name: Push wheel index
-        run: |
-          cd sgl-whl
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "update whl index"
-          git push
+          pip install twine
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          python3 -m twine upload --repository-url https://us-central1-python.pkg.dev/reflectionai/olympus-pypi/ sgl-kernel/dist/* -u oauth2accesstoken -p "$ACCESS_TOKEN"
 
   build-cu129-aarch64:
     if: github.repository == 'sgl-project/sglang'
