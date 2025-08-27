@@ -126,9 +126,9 @@ jobs:
           git push
 
   build-cu128:
-    if: github.repository == 'sgl-project/sglang'
+    if: github.repository == 'reflectionai/sglang'
     needs: build-cu129
-    runs-on: sgl-kernel-release-node
+    runs-on: ubuntu-latest-xl
     strategy:
       matrix:
         python-version: ["3.10"]
