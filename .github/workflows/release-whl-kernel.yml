@@ -133,6 +133,11 @@ jobs:
         python-version: ["3.12"]
         cuda-version: ["12.8"]
     steps:
+      - name: Fix workspace permissions (self-hosted)
+        run: |
+          sudo chown -R $(id -u):$(id -g) "$GITHUB_WORKSPACE" || true
+          sudo chmod -R u+rwX "$GITHUB_WORKSPACE" || true
+
       - uses: actions/checkout@v4
         with:
           submodules: "recursive"
