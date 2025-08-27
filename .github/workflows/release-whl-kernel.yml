@@ -127,7 +127,6 @@ jobs:
 
   build-cu128:
     if: github.repository == 'reflectionai/sglang'
-    needs: build-cu129
     runs-on: ubuntu-latest-xl
     strategy:
       matrix:
