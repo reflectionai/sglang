@@ -21,6 +21,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_ARTIFACT_REGISTRY_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Upload to pypi
         run: |
           cd python
@@ -28,4 +37,5 @@ jobs:
           pip install build
           python3 -m build
           pip install twine
-          python3 -m twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          python3 -m twine upload --repository-url https://us-central1-python.pkg.dev/reflectionai/olympus-pypi/ dist/* -u oauth2accesstoken -p "$ACCESS_TOKEN"
