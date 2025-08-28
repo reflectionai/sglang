@@ -59,13 +59,28 @@ docker run --rm \
    ln -sv /usr/lib64/libibverbs.so.1 /usr/lib64/libibverbs.so && \
    ${PYTHON_ROOT_PATH}/bin/${TORCH_INSTALL} && \
    ${PYTHON_ROOT_PATH}/bin/pip install --no-cache-dir ninja setuptools==75.0.0 wheel==0.41.0 numpy uv scikit-build-core && \
-   export TORCH_CUDA_ARCH_LIST='8.0 8.9 9.0+PTX' && \
+   export TORCH_CUDA_ARCH_LIST='9.0 9.0a' && \
    export CUDA_VERSION=${CUDA_VERSION} && \
+   export NVCC_APPEND_FLAGS='--threads 2' && \
+   export MAX_JOBS=2 && \
    mkdir -p /usr/lib/${ARCH}-linux-gnu/ && \
    ln -s /usr/local/cuda-${CUDA_VERSION}/targets/${LIBCUDA_ARCH}-linux/lib/stubs/libcuda.so /usr/lib/${ARCH}-linux-gnu/libcuda.so && \
 
+   # Ensure '+reflection' is present in version
+   if ! grep -qE '^version\s*=\s*".*reflection.*"$' /sgl-kernel/pyproject.toml; then
+      if grep -qE '^version\s*=\s*".*\+.*"$' /sgl-kernel/pyproject.toml; then
+         sed -i -E 's/^(version\s*=\s*"[^"]*\+[^"]*)"/\1\.reflection"/' /sgl-kernel/pyproject.toml
+      else
+         sed -i -E 's/^(version\s*=\s*"[^"]*)"/\1+reflection"/' /sgl-kernel/pyproject.toml
+      fi
+   fi && \
    cd /sgl-kernel && \
    ls -la ${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages/wheel/ && \
-   PYTHONPATH=${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages ${PYTHON_ROOT_PATH}/bin/python -m uv build --wheel -Cbuild-dir=build . --color=always --no-build-isolation && \
-   ./rename_wheels.sh
+   PYTHONPATH=${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages ${PYTHON_ROOT_PATH}/bin/python -m uv build --wheel -Cbuild-dir=build . --color=always --no-build-isolation \
+      --config-settings=cmake.define.SGL_KERNEL_ENABLE_FA3=OFF \
+      --config-settings=cmake.define.SGL_KERNEL_ENABLE_SM90A=ON \
+      --config-settings=cmake.define.ENABLE_BELOW_SM90=OFF \
+      --config-settings=cmake.define.CUTLASS_NVCC_ARCHS=90 \
+      --config-settings=cmake.define.CMAKE_CUDA_ARCHITECTURES=90 \
+      --config-settings=cmake.define.SGL_KERNEL_ENABLE_FP8=ON
    "
