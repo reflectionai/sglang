@@ -28,6 +28,16 @@ else
    TORCH_INSTALL="pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu126"
 fi
 
+# Ensure '+reflection' is present in version before the build
+PYPROJECT_TOML="$(cd "$(dirname "$0")" && pwd)/pyproject.toml"
+if ! grep -qE '^version\s*=\s*".*reflection.*"$' "$PYPROJECT_TOML"; then
+   if grep -qE '^version\s*=\s*".*\+.*"$' "$PYPROJECT_TOML"; then
+      sed -i -E 's/^(version\s*=\s*"[^"]*\+[^"]*)"/\1.reflection"/' "$PYPROJECT_TOML"
+   else
+      sed -i -E 's/^(version\s*=\s*"[^"]*)"/\1+reflection"/' "$PYPROJECT_TOML"
+   fi
+fi
+
 docker run --rm \
    -v $(pwd):/sgl-kernel \
    ${DOCKER_IMAGE} \
@@ -65,15 +75,6 @@ docker run --rm \
    export MAX_JOBS=2 && \
    mkdir -p /usr/lib/${ARCH}-linux-gnu/ && \
    ln -s /usr/local/cuda-${CUDA_VERSION}/targets/${LIBCUDA_ARCH}-linux/lib/stubs/libcuda.so /usr/lib/${ARCH}-linux-gnu/libcuda.so && \
-
-   # Ensure '+reflection' is present in version
-   if ! grep -qE '^version\s*=\s*".*reflection.*"$' /sgl-kernel/pyproject.toml; then
-      if grep -qE '^version\s*=\s*".*\+.*"$' /sgl-kernel/pyproject.toml; then
-         sed -i -E 's/^(version\s*=\s*"[^"]*\+[^"]*)"/\1\.reflection"/' /sgl-kernel/pyproject.toml
-      else
-         sed -i -E 's/^(version\s*=\s*"[^"]*)"/\1+reflection"/' /sgl-kernel/pyproject.toml
-      fi
-   fi && \
    cd /sgl-kernel && \
    ls -la ${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages/wheel/ && \
    PYTHONPATH=${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages ${PYTHON_ROOT_PATH}/bin/python -m uv build --wheel -Cbuild-dir=build . --color=always --no-build-isolation \
