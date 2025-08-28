@@ -38,8 +38,11 @@ jobs:
           if ! grep -q '^version = ".*\+reflection"' pyproject.toml; then
             sed -i -E 's/^version = "([^"]+)"/version = "\1+reflection"/' pyproject.toml
           fi
+          # Configure pip to resolve build requirements from GAR as well
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          export PIP_INDEX_URL="https://oauth2accesstoken:${ACCESS_TOKEN}@us-central1-python.pkg.dev/reflectionai/olympus-pypi/simple"
+          export PIP_EXTRA_INDEX_URL="https://pypi.org/simple"
           pip install build
           python3 -m build
           pip install twine
-          ACCESS_TOKEN="$(gcloud auth print-access-token)"
           python3 -m twine upload --repository-url https://us-central1-python.pkg.dev/reflectionai/olympus-pypi/ dist/* -u oauth2accesstoken -p "$ACCESS_TOKEN"
