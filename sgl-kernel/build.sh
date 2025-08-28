@@ -2,7 +2,8 @@
 set -ex
 
 PYTHON_VERSION=$1
-CUDA_VERSION=$2
+CUDA_VERSION=12.8
+SGL_THREADS=4
 PYTHON_ROOT_PATH=/opt/python/cp${PYTHON_VERSION//.}-cp${PYTHON_VERSION//.}
 
 ARCH=$(arch)
@@ -17,22 +18,15 @@ else
    BUILDER_NAME="pytorch/manylinux2_28-builder"
 fi
 
-if [ ${CUDA_VERSION} = "12.9" ]; then
-   DOCKER_IMAGE="${BUILDER_NAME}:cuda${CUDA_VERSION}"
-   TORCH_INSTALL="pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu129"
-elif [ ${CUDA_VERSION} = "12.8" ]; then
-   DOCKER_IMAGE="${BUILDER_NAME}:cuda${CUDA_VERSION}"
-   TORCH_INSTALL="pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu128"
-else
-   DOCKER_IMAGE="${BUILDER_NAME}:cuda${CUDA_VERSION}"
-   TORCH_INSTALL="pip install --no-cache-dir torch==2.8.0 --index-url https://download.pytorch.org/whl/cu126"
-fi
+
+DOCKER_IMAGE="${BUILDER_NAME}:cuda${CUDA_VERSION}"
+TORCH_INSTALL="pip install --no-cache-dir torch==2.7.1 --index-url https://download.pytorch.org/whl/cu128"
 
 # Ensure '+reflection' is present in version before the build
 PYPROJECT_TOML="$(cd "$(dirname "$0")" && pwd)/pyproject.toml"
 if ! grep -qE '^version\s*=\s*".*reflection.*"$' "$PYPROJECT_TOML"; then
    if grep -qE '^version\s*=\s*".*\+.*"$' "$PYPROJECT_TOML"; then
-      sed -i -E 's/^(version\s*=\s*"[^"]*\+[^"]*)"/\1.reflection"/' "$PYPROJECT_TOML"
+      sed -i -E 's/^(version\s*=\s*"[^"]*\+[^\"]*)"/\1.reflection"/' "$PYPROJECT_TOML"
    else
       sed -i -E 's/^(version\s*=\s*"[^"]*)"/\1+reflection"/' "$PYPROJECT_TOML"
    fi
@@ -71,17 +65,22 @@ docker run --rm \
    ${PYTHON_ROOT_PATH}/bin/pip install --no-cache-dir ninja setuptools==75.0.0 wheel==0.41.0 numpy uv scikit-build-core && \
    export TORCH_CUDA_ARCH_LIST='9.0 9.0a' && \
    export CUDA_VERSION=${CUDA_VERSION} && \
-   export NVCC_APPEND_FLAGS='--threads 2' && \
-   export MAX_JOBS=2 && \
+   export SGL_THREADS=${SGL_THREADS} && \
+   export NVCC_APPEND_FLAGS='--threads ${SGL_THREADS}' && \
+   export MAX_JOBS=${SGL_THREADS} && \
    mkdir -p /usr/lib/${ARCH}-linux-gnu/ && \
    ln -s /usr/local/cuda-${CUDA_VERSION}/targets/${LIBCUDA_ARCH}-linux/lib/stubs/libcuda.so /usr/lib/${ARCH}-linux-gnu/libcuda.so && \
    cd /sgl-kernel && \
    ls -la ${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages/wheel/ && \
-   PYTHONPATH=${PYTHON_ROOT_PATH}/lib/python${PYTHON_VERSION}/site-packages ${PYTHON_ROOT_PATH}/bin/python -m uv build --wheel -Cbuild-dir=build . --color=always --no-build-isolation \
+   ${PYTHON_ROOT_PATH}/bin/python -m pip wheel \
+      --no-cache-dir --disable-pip-version-check --no-build-isolation \
+      -v \
+      --config-settings=build-dir=build \
       --config-settings=cmake.define.SGL_KERNEL_ENABLE_FA3=OFF \
       --config-settings=cmake.define.SGL_KERNEL_ENABLE_SM90A=ON \
       --config-settings=cmake.define.ENABLE_BELOW_SM90=OFF \
       --config-settings=cmake.define.CUTLASS_NVCC_ARCHS=90 \
       --config-settings=cmake.define.CMAKE_CUDA_ARCHITECTURES=90 \
-      --config-settings=cmake.define.SGL_KERNEL_ENABLE_FP8=ON
+      --config-settings=cmake.define.SGL_KERNEL_ENABLE_FP8=ON \
+      . -w /dist
    "
