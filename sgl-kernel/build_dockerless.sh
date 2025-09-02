@@ -108,7 +108,8 @@ ${PYTHON_BIN} -m pip wheel \
     --config-settings=cmake.define.CUTLASS_NVCC_ARCHS=90 \
     --config-settings=cmake.define.CMAKE_CUDA_ARCHITECTURES=90 \
     --config-settings=cmake.define.SGL_KERNEL_ENABLE_FP8=ON \
-    . -w ${OUTPUT_DIR}
+    -w ${OUTPUT_DIR} \
+    .
 
 end_timer "Wheel build"
 
