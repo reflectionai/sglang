@@ -32,18 +32,6 @@ echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "========================================="
 echo ""
 
-# Ensure '+reflection' is present in version before the build
-start_timer "Version modification check"
-PYPROJECT_TOML="$(cd "$(dirname "$0")" && pwd)/pyproject.toml"
-if ! grep -qE '^version\s*=\s*".*reflection.*"$' "$PYPROJECT_TOML"; then
-   if grep -qE '^version\s*=\s*".*\+.*"$' "$PYPROJECT_TOML"; then
-      sed -i -E 's/^(version\s*=\s*"[^"]*\+[^\"]*)"/\1.reflection"/' "$PYPROJECT_TOML"
-   else
-      sed -i -E 's/^(version\s*=\s*"[^"]*)"/\1+reflection"/' "$PYPROJECT_TOML"
-   fi
-fi
-end_timer "Version modification check"
-
 # Configuration
 start_timer "Configuration setup"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
