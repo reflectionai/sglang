@@ -34,10 +34,6 @@ jobs:
         run: |
           cd python
           cp ../README.md ../LICENSE .
-          # Append +reflection to the version in pyproject.toml if not already present
-          if ! grep -q '^version = ".*\+reflection"' pyproject.toml; then
-            sed -i -E 's/^version = "([^"]+)"/version = "\1+reflection"/' pyproject.toml
-          fi
           # Configure pip to resolve build requirements from GAR as well
           ACCESS_TOKEN="$(gcloud auth print-access-token)"
           export PIP_INDEX_URL="https://oauth2accesstoken:${ACCESS_TOKEN}@us-central1-python.pkg.dev/reflectionai/olympus-pypi/simple"
