@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sglang"
+name = "sglang-reflectionai"
 version = "0.5.2rc1"
 description = "SGLang is yet another fast serving framework for large language models and vision language models."
 readme = "README.md"
@@ -58,7 +58,7 @@ runtime_common = [
 
 srt = [
     "sglang[runtime_common]",
-    "sgl-kernel==0.3.8",
+    "sgl-kernel-reflectionai==0.3.8",
     "torch==2.7.1+cu128",
     "torchaudio==2.7.1",
     "torchvision",
