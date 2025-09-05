@@ -668,12 +668,23 @@ class ModelRunner:
                     raise RuntimeError("SGLang only supports sm75 and above.")
 
         set_cuda_arch()
+        model_loader_extra_config = self.server_args.model_loader_extra_config
+        if self.server_args.load_format == 'megatron':
+            if not self.server_args.megatron_checkpoint_path:
+                raise ValueError(
+                'megatron_checkpoint_path is required when using load_format=megatron'
+                )
 
+            model_loader_extra_config = {
+                'checkpoint_path': self.server_args.megatron_checkpoint_path,
+                'model_path': self.server_args.model_path,
+                'byte_alignment': self.server_args.megatron_checkpoint_byte_alignment,
+            }
         # Prepare the model config
         self.load_config = LoadConfig(
             load_format=self.server_args.load_format,
             download_dir=self.server_args.download_dir,
-            model_loader_extra_config=self.server_args.model_loader_extra_config,
+            model_loader_extra_config=model_loader_extra_config,
         )
         if self.device == "cpu":
             self.model_config = adjust_config_with_unaligned_cpu_tp(
