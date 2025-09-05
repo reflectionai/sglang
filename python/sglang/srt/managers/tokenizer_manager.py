@@ -1122,6 +1122,9 @@ class TokenizerManager:
         self.send_to_scheduler.send_pyobj(obj)
         self.model_update_result = asyncio.Future()
         if self.server_args.dp_size == 1:
+            # Fixes a bug where the code hangs at await self.model_update_result
+            while not self.model_update_result.done():
+                await asyncio.sleep(0.1)
             result = await self.model_update_result
             if result.success:
                 self.served_model_name = obj.model_path
@@ -1131,6 +1134,9 @@ class TokenizerManager:
             return result.success, result.message, result.num_paused_requests
         else:  # self.server_args.dp_size > 1
             self.model_update_tmp = []
+            # Fixes a bug where the code hangs at await self.model_update_result
+            while not self.model_update_result.done():
+                await asyncio.sleep(0.1)
             result = await self.model_update_result
 
             all_success = all([r.success for r in result])

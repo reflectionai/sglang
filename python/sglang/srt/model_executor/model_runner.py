@@ -23,6 +23,7 @@ import time
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
 
+from python.sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
 import torch
 import torch.distributed as dist
 
@@ -777,6 +778,20 @@ class ModelRunner:
         )
 
         target_device = torch.device(self.device)
+
+        if load_format == "megatron":
+            target_device = torch.device(self.device)  # type: ignore
+            self.load_config.model_loader_extra_config = {
+            'checkpoint_path': model_path,
+            'model_path': self.server_args.model_path,
+            'byte_alignment': self.server_args.megatron_checkpoint_byte_alignment,
+            }
+            MegatronModelLoader(self.load_config).load_weights(
+            self.model_config,
+            self.model,
+            target_device,
+            )
+            return True, 'Success'
         self.model_config.model_path = model_path
         load_config = LoadConfig(load_format=load_format)
 
