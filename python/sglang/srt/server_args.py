@@ -124,9 +124,6 @@ def add_disagg_transfer_backend_choices(choices):
 
 @dataclasses.dataclass
 class ServerArgs:
-    # Megatron integration
-    megatron_checkpoint_path: str | None = None
-    megatron_checkpoint_byte_alignment: int | None = None
 
     # Model and tokenizer
     model_path: str
@@ -143,6 +140,9 @@ class ServerArgs:
     revision: Optional[str] = None
     model_impl: str = "auto"
     
+    # Megatron integration
+    megatron_checkpoint_path: str | None = None
+    megatron_checkpoint_byte_alignment: int | None = None
 
     # HTTP server
     host: str = "127.0.0.1"
