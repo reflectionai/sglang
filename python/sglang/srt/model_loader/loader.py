@@ -18,7 +18,7 @@ from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, cast
 
 import huggingface_hub
 import numpy as np
-from python.sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
+from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
 import safetensors.torch
 import torch
 from huggingface_hub import HfApi, hf_hub_download
