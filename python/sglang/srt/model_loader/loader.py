@@ -18,7 +18,6 @@ from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple, cast
 
 import huggingface_hub
 import numpy as np
-from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
 import safetensors.torch
 import torch
 from huggingface_hub import HfApi, hf_hub_download
@@ -1569,6 +1568,7 @@ def get_model_loader(load_config: LoadConfig) -> BaseModelLoader:
         return RemoteModelLoader(load_config)
 
     if load_config.load_format == LoadFormat.MEGATRON:
+        from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
         return MegatronModelLoader(load_config)
 
 

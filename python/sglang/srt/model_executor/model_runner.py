@@ -25,8 +25,6 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.distributed as dist
-
-from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
 from sglang.srt.configs.device_config import DeviceConfig
 from sglang.srt.configs.load_config import LoadConfig
 from sglang.srt.configs.model_config import AttentionArch, ModelConfig
@@ -797,6 +795,8 @@ class ModelRunner:
             'model_path': self.server_args.model_path,
             'byte_alignment': self.server_args.megatron_checkpoint_byte_alignment,
             }
+
+            from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
             MegatronModelLoader(self.load_config).load_weights(
             self.model_config,
             self.model,
