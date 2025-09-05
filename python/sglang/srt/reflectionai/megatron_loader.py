@@ -1,9 +1,9 @@
 """Megatron loader stub for SGLang."""
 
 
-from python.sglang.srt.configs.device_config import DeviceConfig
-from python.sglang.srt.configs.model_config import ModelConfig
-from python.sglang.srt.model_loader.loader import BaseModelLoader
+from sglang.srt.configs.device_config import DeviceConfig
+from sglang.srt.configs.model_config import ModelConfig
+from sglang.srt.model_loader.loader import BaseModelLoader
 import torch
 import torch.nn as nn
 
