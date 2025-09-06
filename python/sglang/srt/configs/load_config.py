@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
-from python.sglang.srt.reflectionai.megatron_loader import MegatronModelLoaderBase
+from sglang.srt.reflectionai.megatron_loader import MegatronModelLoaderBase
 from sglang.srt.utils import is_hip
 
 logger = logging.getLogger(__name__)
