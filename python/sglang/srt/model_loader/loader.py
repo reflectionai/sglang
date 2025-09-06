@@ -1568,8 +1568,7 @@ def get_model_loader(load_config: LoadConfig) -> BaseModelLoader:
         return RemoteModelLoader(load_config)
 
     if load_config.load_format == LoadFormat.MEGATRON:
-        from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
-        return MegatronModelLoader(load_config)
+        return load_config.megatron_weight_loader_impl(load_config)
 
 
     return DefaultModelLoader(load_config)

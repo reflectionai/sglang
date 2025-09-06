@@ -23,6 +23,7 @@ import sys
 import tempfile
 from typing import List, Literal, Optional, Union
 
+from sglang.srt.reflectionai.megatron_loader import MegatronModelLoaderBase
 from sglang.srt.function_call.function_call_parser import FunctionCallParser
 from sglang.srt.hf_transformers_utils import check_gguf_file, get_config
 from sglang.srt.lora.lora_registry import LoRARef
@@ -143,6 +144,7 @@ class ServerArgs:
     # Megatron integration
     megatron_checkpoint_path: str | None = None
     megatron_checkpoint_byte_alignment: int | None = None
+    megatron_weight_loader_impl: MegatronModelLoaderBase | None = None
 
     # HTTP server
     host: str = "127.0.0.1"

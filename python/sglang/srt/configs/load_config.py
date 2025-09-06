@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
+from python.sglang.srt.reflectionai.megatron_loader import MegatronModelLoaderBase
 from sglang.srt.utils import is_hip
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,8 @@ class LoadConfig:
     model_loader_extra_config: Optional[Union[str, dict]] = field(default_factory=dict)
     ignore_patterns: Optional[Union[List[str], str]] = None
     decryption_key_file: Optional[str] = None
-
+    megatron_weight_loader_impl: Optional[MegatronModelLoaderBase] = None
+    
     def __post_init__(self):
         model_loader_extra_config = self.model_loader_extra_config or {}
         if isinstance(model_loader_extra_config, str):

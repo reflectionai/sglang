@@ -683,6 +683,7 @@ class ModelRunner:
             load_format=self.server_args.load_format,
             download_dir=self.server_args.download_dir,
             model_loader_extra_config=model_loader_extra_config,
+            megatron_weight_loader_impl=self.server_args.megatron_weight_loader_impl,
         )
         if self.device == "cpu":
             self.model_config = adjust_config_with_unaligned_cpu_tp(
@@ -796,15 +797,14 @@ class ModelRunner:
             'byte_alignment': self.server_args.megatron_checkpoint_byte_alignment,
             }
 
-            from sglang.srt.reflectionai.megatron_loader import MegatronModelLoader
-            MegatronModelLoader(self.load_config).load_weights(
+            self.server_args.megatron_weight_loader_impl(self.load_config).load_weights(
             self.model_config,
             self.model,
             target_device,
             )
             return True, 'Success'
         self.model_config.model_path = model_path
-        load_config = LoadConfig(load_format=load_format)
+        load_config = LoadConfig(load_format=load_format, megatron_weight_loader_impl=self.server_args.megatron_weight_loader_impl)
 
         # Only support DefaultModelLoader for now
         loader = get_model_loader(load_config)
